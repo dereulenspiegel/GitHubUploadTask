@@ -12,13 +12,6 @@
 	<property name="build" location="build"/>
 	<property name="dist"  location="dist"/>
 	
-	<!-- include the upload task -->
-	<path id="githubhuploadtask.classpath">
-		<pathelement location="."/>
-		<fileset dir="dist/lib">
-			<include name="**/*.jar"/>
-		</fileset>
-	</path>
 	<taskdef name="upload" classname="no.kinsey.ant.GitHubUploadTask" />
 		
 	<target name="init">
