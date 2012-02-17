@@ -19,7 +19,7 @@
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
-	<!-- <taskdef name="upload" classname="no.kinsey.ant.GitHubUploadTask" classpathref="githubhuploadtask.classpath" loaderref="githubhuploadtask.classpath.loader" /> -->
+	<taskdef name="upload" classname="no.kinsey.ant.GitHubUploadTask" />
 		
 	<target name="init">
 		<!-- Create the time stamp -->
@@ -42,7 +42,7 @@
 		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
 		<jar jarfile="${dist}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}"/>
 		<zip destfile="${dist}/GitHubUploadTask-${DSTAMP}.zip" basedir="${dist}/lib/"/>
-		<!-- <upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="[is not sent]" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" /> -->
+		<upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="GitHubUploadTask nightly" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" />
 	</target>
 
 	<target name="clean"
