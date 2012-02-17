@@ -35,7 +35,7 @@ public class GitHubUploadTask extends Task {
 	private String path;
 	private String description;
 
-	Document PostToGitHub(String filename, long filesize) {	
+	Document postToGitHub(String filename, long filesize) {	
 		String postUrl = String.format("https://github.com/%1$s/%2$s/downloads", user, repo);
 		System.out.println("Posting to url " + postUrl);
 		
@@ -60,12 +60,6 @@ public class GitHubUploadTask extends Task {
 			// Get the response
 			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-			InputStreamReader reader = new InputStreamReader(conn.getInputStream());
-			BufferedReader breader = new BufferedReader(reader);
-			String s = "";
-			while((s=breader.readLine())!=null){
-				System.out.println(s);
-			}
 			Document doc = docBuilder.parse(conn.getInputStream());
 			doc.getDocumentElement ().normalize ();
 			return doc;
@@ -75,7 +69,7 @@ public class GitHubUploadTask extends Task {
 		return null;
 	}
 	
-	void WriteFormField(DataOutputStream dos, String header, String field, String value) throws IOException{
+	void writeFormField(DataOutputStream dos, String header, String field, String value) throws IOException{
 		System.out.println("Writing field  " + field + " with value " + value);
 		dos.writeBytes(header);
 		dos.writeBytes("Content-Disposition: form-data; name=\"" + field + "\"\r\n");
@@ -84,7 +78,7 @@ public class GitHubUploadTask extends Task {
 		dos.writeBytes("\r\n");
 	}
 	
-	boolean UploadToS3(File file, String key, String policy, String accesskeyid, String signature, String acl) {
+	boolean uploadToS3(File file, String key, String policy, String accesskeyid, String signature, String acl) {
 		String postUrl = "http://github.s3.amazonaws.com/";
 		System.out.println("Posting to url " + postUrl);
 		
@@ -111,13 +105,13 @@ public class GitHubUploadTask extends Task {
 			String footer = "--*****--\r\n";
 			
 			// Write the form data
-			WriteFormField(dos, header, "Filename", file.getName());
-			WriteFormField(dos, header, "key", key);
-			WriteFormField(dos, header, "policy", policy);
-			WriteFormField(dos, header, "AWSAccessKeyId", accesskeyid);
-			WriteFormField(dos, header, "signature", signature);
-			WriteFormField(dos, header, "acl", acl);
-			WriteFormField(dos, header, "success_action_status", "201");
+			writeFormField(dos, header, "Filename", file.getName());
+			writeFormField(dos, header, "key", key);
+			writeFormField(dos, header, "policy", policy);
+			writeFormField(dos, header, "AWSAccessKeyId", accesskeyid);
+			writeFormField(dos, header, "signature", signature);
+			writeFormField(dos, header, "acl", acl);
+			writeFormField(dos, header, "success_action_status", "201");
 			
 			dos.writeBytes(header);
 			dos.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() +"\"\r\n");
@@ -172,7 +166,7 @@ public class GitHubUploadTask extends Task {
 			throw new BuildException("The file " + path + " does not exist");
 		}
 		
-		Document xml = PostToGitHub(file.getName(), file.length());
+		Document xml = postToGitHub(file.getName(), file.length());
 		if (xml != null) {
 			NodeList list = xml.getElementsByTagName("*");
 			String prefix = "", accesskeyid = "", bucket = "", https = "", acl = "", policy = "", mimeType = "", signature = "", redirect = "", expirationdate = "";
@@ -207,7 +201,7 @@ public class GitHubUploadTask extends Task {
 			}
 						
 			// Upload file
-			if (UploadToS3(file, prefix + file.getName(), policy, accesskeyid, signature, acl)) {
+			if (uploadToS3(file, prefix + file.getName(), policy, accesskeyid, signature, acl)) {
 				System.out.println("File uploaded successfully");
 			} else{
 				throw new BuildException("Could not upload the file to S3");
