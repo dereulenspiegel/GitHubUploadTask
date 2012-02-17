@@ -3,6 +3,7 @@ package no.kinsey.ant;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
+import java.io.BufferedReader;
 import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.io.DataOutputStream;
@@ -21,7 +22,6 @@ import java.lang.StringBuilder;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
 import org.w3c.dom.*;
 
 
@@ -36,7 +36,7 @@ public class GitHubUploadTask extends Task {
 	private String description;
 
 	Document PostToGitHub(String filename, long filesize) {	
-		String postUrl = String.format("http://github.com/%1$s/%2$s/downloads", user, repo);
+		String postUrl = String.format("https://github.com/%1$s/%2$s/downloads", user, repo);
 		System.out.println("Posting to url " + postUrl);
 		
 		StringBuilder sb = new StringBuilder();
@@ -60,6 +60,12 @@ public class GitHubUploadTask extends Task {
 			// Get the response
 			DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+			InputStreamReader reader = new InputStreamReader(conn.getInputStream());
+			BufferedReader breader = new BufferedReader(reader);
+			String s = "";
+			while((s=breader.readLine())!=null){
+				System.out.println(s);
+			}
 			Document doc = docBuilder.parse(conn.getInputStream());
 			doc.getDocumentElement ().normalize ();
 			return doc;
@@ -78,7 +84,7 @@ public class GitHubUploadTask extends Task {
 		dos.writeBytes("\r\n");
 	}
 	
-	Boolean UploadToS3(File file, String key, String policy, String accesskeyid, String signature, String acl) {
+	boolean UploadToS3(File file, String key, String policy, String accesskeyid, String signature, String acl) {
 		String postUrl = "http://github.s3.amazonaws.com/";
 		System.out.println("Posting to url " + postUrl);
 		
