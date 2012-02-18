@@ -4,18 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ResponseParser {
-	
-	public static Map<String,String> parseResponse(String source){
+
+	private ResponseParser() {
+
+	}
+
+	public static Map<String, String> parseResponse(String source) {
+		if(source == null || source.trim().length()==0){
+			throw new IllegalArgumentException("The source can't be an empty or null string");
+		}
 		String response = source.trim();
 		response = response.replace("{", "");
 		response = response.replace("}", "");
 		String[] parts = response.split("\",\"");
-		Map<String,String> result = new HashMap<String, String>();
-		for(String s : parts){
+		Map<String, String> result = new HashMap<String, String>();
+		for (String s : parts) {
 			String[] pairs = s.split("\":\"");
-			String name = pairs[0].replace("\"", "");
-			String value =  pairs[1].replace("\"", "");
-			result.put(name, value);
+			if(pairs.length == 2){
+				String name = pairs[0].replace("\"", "");
+				String value = pairs[1].replace("\"", "");
+				result.put(name, value);
+			} else {
+				throw new IllegalArgumentException("The Input is not parseable");
+			}
 		}
 		return result;
 	}
