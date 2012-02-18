@@ -19,12 +19,14 @@ public class GitHubUploadTask extends Task {
 
 	@Override
 	public void execute() throws BuildException {
+		System.out.println("Uploading file "+path+" to GitHub");
 		uploader = new GitHubUploader(user, username, repo, token);
 		try {
 			uploader.uploadFile(path, description);
+			System.out.println("Upload finished");
 		} catch (GitHubUploadException e) {
 			e.printStackTrace();
-			throw new BuildException(e);
+			throw new BuildException("Can't upload file to GitHub",e);
 		}
 	}
 
