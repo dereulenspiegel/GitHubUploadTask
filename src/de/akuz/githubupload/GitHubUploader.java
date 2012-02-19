@@ -23,6 +23,12 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
+/**
+ * This class implements file uploading to github. Repository, user (owner of repositoy), username, a description
+ * and the GitHub API token must be specified to upload a file.
+ * @author Till Klocke
+ *
+ */
 public class GitHubUploader {
 
 	private String user;

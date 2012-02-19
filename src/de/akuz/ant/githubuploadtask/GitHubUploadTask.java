@@ -6,6 +6,15 @@ import org.apache.tools.ant.Task;
 import de.akuz.githubupload.GitHubUploadException;
 import de.akuz.githubupload.GitHubUploader;
 
+/**
+ * This task makes the GitHubUploader available to Ant.
+ * It can be used like this
+ * <taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" />
+ * <upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="GitHubUploadTask nightly" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" />
+ * if the GitHubUploader is in the classpath of Ant
+ * @author Till Klocke
+ *
+ */
 public class GitHubUploadTask extends Task {
 	
 	private String user;

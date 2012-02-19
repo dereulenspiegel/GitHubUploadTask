@@ -3,6 +3,11 @@ package de.akuz.githubupload;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class parses the response from GitHub into a Map object
+ * @author Till Klocke
+ *
+ */
 public class ResponseParser {
 
 	private ResponseParser() {
