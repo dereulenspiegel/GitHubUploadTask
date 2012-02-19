@@ -23,7 +23,7 @@ public class GitHubUploadTask extends Task {
 	private String token;
 	private String path;
 	private String description;
-	private boolean debug;
+	private boolean debug = false;
 	
 	private GitHubUploader uploader;
 
@@ -31,6 +31,7 @@ public class GitHubUploadTask extends Task {
 	public void execute() throws BuildException {
 		System.out.println("Uploading file "+path+" to GitHub");
 		uploader = new GitHubUploader(user, username, repo, token);
+		uploader.setDebug(debug);
 		try {
 			uploader.uploadFile(path, description);
 			System.out.println("Upload finished");
