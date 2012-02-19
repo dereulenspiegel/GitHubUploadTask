@@ -51,8 +51,9 @@ public class GitHubUploader {
 		Map<String, String> s3Details = getS3Details(file, description);
 		uploadFileToS3(file, s3Details);
 	}
-	
-	public void uploadFile(String filename, String description) throws GitHubUploadException{
+
+	public void uploadFile(String filename, String description)
+			throws GitHubUploadException {
 		uploadFile(new File(filename), description);
 	}
 
@@ -61,14 +62,14 @@ public class GitHubUploader {
 		HttpPost post = new HttpPost(S3_UPLOAD_URL);
 		MultipartEntity entity = new MultipartEntity(
 				HttpMultipartMode.BROWSER_COMPATIBLE);
-		
+
 		try {
 			for (String s : details.keySet()) {
 				entity.addPart(s, new StringBody(details.get(s)));
 			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't encode POST for AWS S3",e);
+			throw new GitHubUploadException("Can't encode POST for AWS S3", e);
 		}
 		entity.addPart("file", new FileBody(file));
 		post.setEntity(entity);
@@ -76,15 +77,16 @@ public class GitHubUploader {
 			HttpResponse response = httpclient.execute(post);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't post to AWS S3",e);
+			throw new GitHubUploadException("Can't post to AWS S3", e);
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't post to AWS S3",e);
+			throw new GitHubUploadException("Can't post to AWS S3", e);
 		}
 		// TODO Evaluate response
 	}
 
-	private Map<String, String> getS3Details(File file, String description) throws GitHubUploadException {
+	private Map<String, String> getS3Details(File file, String description)
+			throws GitHubUploadException {
 		currentURL = String.format(DOWNLOADS_URL, user, repo);
 
 		HttpPost httppost = new HttpPost(currentURL);
@@ -97,29 +99,28 @@ public class GitHubUploader {
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't encode POST parameters",e);
+			throw new GitHubUploadException("Can't encode POST parameters", e);
 		}
-		
+
 		nameValuePairs.add(new BasicNameValuePair("login", username));
 		nameValuePairs.add(new BasicNameValuePair("token", token));
 		nameValuePairs.add(new BasicNameValuePair("file_size", String
 				.valueOf(file.length())));
-		
+
 		HttpResponse response;
 		try {
 			response = httpclient.execute(httppost);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't post request to GitHub",e);
+			throw new GitHubUploadException("Can't post request to GitHub", e);
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't post request to GitHub",e);
+			throw new GitHubUploadException("Can't post request to GitHub", e);
 		}
 		// TODO: Evaluate headers
 		InputStreamReader ir;
 		try {
-			ir = new InputStreamReader(response.getEntity()
-					.getContent());
+			ir = new InputStreamReader(response.getEntity().getContent());
 			BufferedReader reader = new BufferedReader(ir);
 			String s = "";
 			StringBuffer buffer = new StringBuffer();
@@ -132,12 +133,47 @@ public class GitHubUploader {
 
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't read response from GitHub",e);
+			throw new GitHubUploadException("Can't read response from GitHub",
+					e);
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't read response from GitHub",e);
+			throw new GitHubUploadException("Can't read response from GitHub",
+					e);
 		}
+
+	}
+
+	public static void main(String[] argv) {
+		String user = null;
+		String username = null;
+		String repo = null;
+		String token = null;
+		String description = null;
+		String filePath = null;
+
+		int i = 0;
+		for (String s : argv) {
+			if (s.equals("-user")) {
+				user = argv[i + 1];
+			} else if (s.equals("-username")) {
+				username = argv[i + 1];
+			} else if (s.equals("-repo")) {
+				repo = argv[i + 1];
+			} else if(s.equals("-token")){
+				token = argv[i+1];
+			} else if(s.equals("-description")){
+				description = argv[i+1];
+			}
+			i++;
+		}
+		filePath = argv[argv.length-1];
 		
+		GitHubUploader uploader = new GitHubUploader(user, username, repo, token);
+		try {
+			uploader.uploadFile(filePath, description);
+		} catch (GitHubUploadException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
