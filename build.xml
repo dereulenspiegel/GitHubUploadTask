@@ -76,7 +76,7 @@
 	</target>
 	
 	<target name="build-jar" depends="compile">
-			<jar jarfile="${dist}/lib/GitHubUploadTask-with-deps${DSTAMP}.jar" basedir="${build}">
+			<jar jarfile="${dist}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}">
 				<manifest>
 					<attribute name="Built-By" value="XXXXXXXXj" />
 					<attribute name="Implementation-Title" value="GitHubUploadTask" />
