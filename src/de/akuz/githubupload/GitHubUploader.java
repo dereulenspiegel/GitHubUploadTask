@@ -57,6 +57,9 @@ public class GitHubUploader {
 
 	public void uploadFile(File file, String description)
 			throws GitHubUploadException {
+		if(file == null || !file.exists() || file.length()==0){
+			throw new GitHubUploadException("The specified file does not exist or is empty");
+		}
 		Map<String, String> s3Details = getS3Details(file, description);
 		uploadFileToS3(file, s3Details);
 	}
