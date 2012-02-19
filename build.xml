@@ -22,7 +22,7 @@
 		</fileset>
 	</path>
 
-	<!--<taskdef name="upload" classname="no.kinsey.ant.GitHubUploadTask" />-->
+	<taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" />
 
 	<target name="init">
 		<!-- Create the time stamp -->
