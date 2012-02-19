@@ -71,6 +71,7 @@ public class GitHubUploader {
 		HttpPost post = new HttpPost(S3_UPLOAD_URL);
 		MultipartEntity entity = new MultipartEntity(
 				HttpMultipartMode.BROWSER_COMPATIBLE);
+		debug("Posting following details to AWS S3: "+details.toString());
 
 		try {
 			entity.addPart("key", new StringBody(details.get("prefix")));
