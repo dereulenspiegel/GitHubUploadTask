@@ -18,7 +18,7 @@
 
 	<path id="classpath">
 		<fileset dir="${libs}">
-			<include name="**/*.jar" />
+			<include name="*.jar" />
 		</fileset>
 	</path>
 
@@ -52,7 +52,7 @@
 		<mkdir dir="${extracted-jars}" />
 		<unzip dest="${extracted-jars}">
 			<fileset dir="${libs}">
-				<include name="**/*.jar" />
+				<include name="*.jar" />
 			</fileset>
 		</unzip>
 		<jar jarfile="${dist}/lib/GitHubUploadTask-with-deps-${DSTAMP}.jar" basedir="${build}">
