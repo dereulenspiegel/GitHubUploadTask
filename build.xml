@@ -14,6 +14,7 @@
 	<property name="libs" location="libs" />
 	<property name="test.dir" location="test" />
 	<property name="main.class" value="de.akuz.githubupload.GitHubUploader" />
+	<property name="extracted-jars" value="bin.ext" />
 
 	<path id="classpath">
 		<fileset dir="${libs}">
@@ -44,54 +45,51 @@
 		<antcall target="build-fat-jar" />
 		<antcall target="build-jar" />
 		<zip destfile="${dist}/GitHubUploadTask-${DSTAMP}.zip" basedir="${dist}/lib/" />
-		
+
 		<taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" />
 		<upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="GitHubUploadTask nightly" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" />
 	</target>
 
 	<target name="build-fat-jar" depends="compile">
-		<pathconvert property="manifest.classpath" pathsep=" ">
-			<path refid="classpath" />
-			<mapper>
-				<chainedmapper>
-					<flattenmapper />
-					<globmapper from="*.jar" to="lib/*.jar" />
-				</chainedmapper>
-			</mapper>
-		</pathconvert>
+		<mkdir dir="${extracted-jars}" />
+		<unzip dest="${extracted-jars}">
+			<fileset dir="${libs}">
+				<include name="**/httpcore*.jar" />
+				<include name="**/httpclient-4*.jar" />
+				<include name="**/httpmime*.jar" />
+			</fileset>
+		</unzip>
 		<jar jarfile="${dist}/lib/GitHubUploadTask-with-deps-${DSTAMP}.jar" basedir="${build}">
 			<manifest>
 				<attribute name="Built-By" value="XXXXXXXXj" />
 				<attribute name="Implementation-Title" value="GitHubUploadTask" />
 				<attribute name="Implementation-Version" value="0.1" />
 				<attribute name="Implementation-Vendor" value="Till Klocke" />
-				<attribute name="Class-Path" value="${manifest.classpath}" />
 				<attribute name="Main-Class" value="${main.class}" />
 			</manifest>
-			<zipfileset dir="${libs}" prefix="lib">
-				<include name="**/httpcore*.jar" />
-				<include name="**/httpclient-4*.jar" />
-				<include name="**/httpmime*.jar" />
+			<zipfileset dir="${extracted-jars}">
+				<include name="**/*.class" />
 			</zipfileset>
 		</jar>
 	</target>
-	
+
 	<target name="build-jar" depends="compile">
-			<jar jarfile="${dist}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}">
-				<manifest>
-					<attribute name="Built-By" value="XXXXXXXXj" />
-					<attribute name="Implementation-Title" value="GitHubUploadTask" />
-					<attribute name="Implementation-Version" value="0.1" />
-					<attribute name="Implementation-Vendor" value="Till Klocke" />
-					<attribute name="Main-Class" value="${main.class}" />
-				</manifest>
-			</jar>
-		</target>
+		<jar jarfile="${dist}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Built-By" value="XXXXXXXXj" />
+				<attribute name="Implementation-Title" value="GitHubUploadTask" />
+				<attribute name="Implementation-Version" value="0.1" />
+				<attribute name="Implementation-Vendor" value="Till Klocke" />
+				<attribute name="Main-Class" value="${main.class}" />
+			</manifest>
+		</jar>
+	</target>
 
 	<target name="clean" description="clean up">
 		<!-- Delete the ${build} and ${dist} directory trees -->
 		<delete dir="${build}" />
 		<delete dir="${dist}" />
+		<delete dir="${extracted-jars}" />
 	</target>
 
 	<target name="test" description="test the upload">
