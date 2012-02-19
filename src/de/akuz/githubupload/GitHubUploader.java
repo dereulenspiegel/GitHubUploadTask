@@ -76,8 +76,7 @@ public class GitHubUploader {
 			entity.addPart("AWSAccessKeyId", new StringBody(details.get("accesskeyid")));
 			entity.addPart("signature", new StringBody(details.get("signature")));
 			entity.addPart("acl", new StringBody(details.get("acl")));
-			entity.addPart("success_action_status", new StringBody(details.get("201")));
-			entity.addPart("key", new StringBody(details.get("prefix")));
+			entity.addPart("success_action_status", new StringBody("201"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't encode POST for AWS S3", e);
