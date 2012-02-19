@@ -18,9 +18,7 @@
 
 	<path id="classpath">
 		<fileset dir="${libs}">
-			<include name="**/httpcore*.jar" />
-			<include name="**/httpclient-4*.jar" />
-			<include name="**/httpmime*.jar" />
+			<include name="**/*.jar" />
 		</fileset>
 	</path>
 
@@ -54,9 +52,7 @@
 		<mkdir dir="${extracted-jars}" />
 		<unzip dest="${extracted-jars}">
 			<fileset dir="${libs}">
-				<include name="**/httpcore*.jar" />
-				<include name="**/httpclient-4*.jar" />
-				<include name="**/httpmime*.jar" />
+				<include name="**/*.jar" />
 			</fileset>
 		</unzip>
 		<jar jarfile="${dist}/lib/GitHubUploadTask-with-deps-${DSTAMP}.jar" basedir="${build}">
