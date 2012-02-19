@@ -75,16 +75,23 @@ public class GitHubUploader {
 		MultipartEntity entity = new MultipartEntity(
 				HttpMultipartMode.BROWSER_COMPATIBLE);
 		debug("Posting following details to AWS S3: "+details.toString());
+		
+		String key = details.get("prefix");
+		String filename = file.getName();
+		String policy = details.get("policy");
+		String accesskeyid = details.get("accesskeyid");
+		String signature = details.get("signature");
+		String acl = details.get("acl");
 
 		try {
-			entity.addPart("key", new StringBody(details.get("prefix")));
-			entity.addPart("Filename", new StringBody(file.getName()));
-			entity.addPart("policy", new StringBody(details.get("policy")));
+			entity.addPart("key", new StringBody(key));
+			entity.addPart("Filename", new StringBody(filename));
+			entity.addPart("policy", new StringBody(policy));
 			entity.addPart("AWSAccessKeyId",
-					new StringBody(details.get("accesskeyid")));
+					new StringBody(accesskeyid));
 			entity.addPart("signature",
-					new StringBody(details.get("signature")));
-			entity.addPart("acl", new StringBody(details.get("acl")));
+					new StringBody(signature));
+			entity.addPart("acl", new StringBody(acl));
 			entity.addPart("success_action_status", new StringBody("201"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -93,7 +100,17 @@ public class GitHubUploader {
 		entity.addPart("file", new FileBody(file));
 		post.setEntity(entity);
 		try {
+			debug("Sending "+entity.getContentLength()+" bytes of information to AWS S3...");
+			
 			HttpResponse response = httpclient.execute(post);
+			debug("Received status "+response.getStatusLine()+" from AWS S3");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			StringBuffer buffer = new StringBuffer();
+			String s = "";
+			while((s = reader.readLine())!=null){
+				buffer.append(s);
+			}
+			debug("Response body: "+s);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post to AWS S3", e);
@@ -171,6 +188,7 @@ public class GitHubUploader {
 		String token = null;
 		String description = null;
 		String filePath = null;
+		boolean debug = false;
 
 		int i = 0;
 		for (String s : argv) {
@@ -184,6 +202,8 @@ public class GitHubUploader {
 				token = argv[i + 1];
 			} else if (s.equals("-description")) {
 				description = argv[i + 1];
+			} else if(s.equals("-debug")){
+				debug = true;
 			}
 			i++;
 		}
@@ -191,6 +211,7 @@ public class GitHubUploader {
 
 		GitHubUploader uploader = new GitHubUploader(user, username, repo,
 				token);
+		uploader.setDebug(debug);
 		try {
 			uploader.uploadFile(filePath, description);
 		} catch (GitHubUploadException e) {
