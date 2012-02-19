@@ -70,9 +70,14 @@ public class GitHubUploader {
 				HttpMultipartMode.BROWSER_COMPATIBLE);
 
 		try {
-			for (String s : details.keySet()) {
-				entity.addPart(s, new StringBody(details.get(s)));
-			}
+			entity.addPart("key", new StringBody(details.get("prefix")));
+			entity.addPart("Filename", new StringBody(file.getName()));
+			entity.addPart("policy", new StringBody(details.get("policy")));
+			entity.addPart("AWSAccessKeyId", new StringBody(details.get("accesskeyid")));
+			entity.addPart("signature", new StringBody(details.get("signature")));
+			entity.addPart("acl", new StringBody(details.get("acl")));
+			entity.addPart("success_action_status", new StringBody(details.get("201")));
+			entity.addPart("key", new StringBody(details.get("prefix")));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't encode POST for AWS S3", e);
