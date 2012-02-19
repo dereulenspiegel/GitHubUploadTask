@@ -61,7 +61,7 @@ public class GitHubUploader {
 		HttpPost post = new HttpPost(S3_UPLOAD_URL);
 		MultipartEntity entity = new MultipartEntity(
 				HttpMultipartMode.BROWSER_COMPATIBLE);
-		entity.addPart("file", new FileBody(file));
+		
 		try {
 			for (String s : details.keySet()) {
 				entity.addPart(s, new StringBody(details.get(s)));
@@ -70,6 +70,7 @@ public class GitHubUploader {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't encode POST for AWS S3",e);
 		}
+		entity.addPart("file", new FileBody(file));
 		post.setEntity(entity);
 		try {
 			HttpResponse response = httpclient.execute(post);
