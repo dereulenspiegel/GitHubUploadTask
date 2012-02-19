@@ -23,6 +23,7 @@ public class GitHubUploadTask extends Task {
 	private String token;
 	private String path;
 	private String description;
+	private boolean debug;
 	
 	private GitHubUploader uploader;
 
@@ -85,6 +86,10 @@ public class GitHubUploadTask extends Task {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	
+	public void setDebug(String value){
+		debug = Boolean.parseBoolean(value);
 	}
 
 }

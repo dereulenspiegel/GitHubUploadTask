@@ -24,10 +24,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
- * This class implements file uploading to github. Repository, user (owner of repositoy), username, a description
- * and the GitHub API token must be specified to upload a file.
+ * This class implements file uploading to github. Repository, user (owner of
+ * repositoy), username, a description and the GitHub API token must be
+ * specified to upload a file.
+ * 
  * @author Till Klocke
- *
+ * 
  */
 public class GitHubUploader {
 
@@ -36,6 +38,7 @@ public class GitHubUploader {
 	private String repo;
 	private String token;
 	private HttpClient httpclient;
+	private boolean debug = false;
 
 	private final static String DOWNLOADS_URL = "https://github.com/%1$s/%2$s/downloads";
 	private final static String S3_UPLOAD_URL = "http://github.s3.amazonaws.com/";
@@ -73,8 +76,10 @@ public class GitHubUploader {
 			entity.addPart("key", new StringBody(details.get("prefix")));
 			entity.addPart("Filename", new StringBody(file.getName()));
 			entity.addPart("policy", new StringBody(details.get("policy")));
-			entity.addPart("AWSAccessKeyId", new StringBody(details.get("accesskeyid")));
-			entity.addPart("signature", new StringBody(details.get("signature")));
+			entity.addPart("AWSAccessKeyId",
+					new StringBody(details.get("accesskeyid")));
+			entity.addPart("signature",
+					new StringBody(details.get("signature")));
 			entity.addPart("acl", new StringBody(details.get("acl")));
 			entity.addPart("success_action_status", new StringBody("201"));
 		} catch (UnsupportedEncodingException e) {
@@ -98,14 +103,13 @@ public class GitHubUploader {
 	private Map<String, String> getS3Details(File file, String description)
 			throws GitHubUploadException {
 		currentURL = String.format(DOWNLOADS_URL, user, repo);
-
+		debug("Posting to URL: "+currentURL);
 		HttpPost httppost = new HttpPost(currentURL);
 		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(5);
 		try {
 			nameValuePairs.add(new BasicNameValuePair("file_name", URLEncoder
 					.encode(file.getName(), ENCODING)));
-			nameValuePairs.add(new BasicNameValuePair("description", URLEncoder
-					.encode(description, ENCODING)));
+			nameValuePairs.add(new BasicNameValuePair("description", description));
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -118,8 +122,10 @@ public class GitHubUploader {
 				.valueOf(file.length())));
 
 		HttpResponse response;
+		
 		try {
 			response = httpclient.execute(httppost);
+			debug("Got Response with status: "+response.getStatusLine());
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
@@ -137,6 +143,7 @@ public class GitHubUploader {
 			while ((s = reader.readLine()) != null) {
 				buffer.append(s);
 			}
+			debug("Got response String: "+buffer.toString());
 			Map<String, String> map = ResponseParser.parseResponse(buffer
 					.toString());
 			return map;
@@ -169,20 +176,31 @@ public class GitHubUploader {
 				username = argv[i + 1];
 			} else if (s.equals("-repo")) {
 				repo = argv[i + 1];
-			} else if(s.equals("-token")){
-				token = argv[i+1];
-			} else if(s.equals("-description")){
-				description = argv[i+1];
+			} else if (s.equals("-token")) {
+				token = argv[i + 1];
+			} else if (s.equals("-description")) {
+				description = argv[i + 1];
 			}
 			i++;
 		}
-		filePath = argv[argv.length-1];
-		
-		GitHubUploader uploader = new GitHubUploader(user, username, repo, token);
+		filePath = argv[argv.length - 1];
+
+		GitHubUploader uploader = new GitHubUploader(user, username, repo,
+				token);
 		try {
 			uploader.uploadFile(filePath, description);
 		} catch (GitHubUploadException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void setDebug(boolean debug){
+		this.debug = debug;
+	}
+	
+	private void debug(String message){
+		if(debug){
+			System.out.println(message);
 		}
 	}
 
