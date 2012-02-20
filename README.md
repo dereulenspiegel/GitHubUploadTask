@@ -39,4 +39,5 @@ This is licensed under the MIT license
 Author
 =====
 The author is Øyvind Sean Kinsey (oyvind@kinsey.no / http://kinsey.no)
+and Till Klocke (http://blog.akuz.de)
  
