@@ -117,15 +117,16 @@ public class GitHubUploader {
 		StringBuffer buffer = new StringBuffer();
 		Header[] headers = response.getAllHeaders();
 		for (Header h : headers) {
-			buffer.append("[Header] "+h.getName()+" : "+h.getValue());
+			buffer.append("[Header] "+h.getName()+" : "+h.getValue()+"\n");
 		}
-		buffer.append("-----Content-----");
+		buffer.append("-----Content-----\n");
 		try {
 			buffer.append(ResponseParser.inputStreamToString(response.getEntity().getContent()));
+			buffer.append("\n");
 		} catch (Exception e) {
 			buffer.append("Couldn't parse content. Reason: "+e.getMessage());
 		} 
-		buffer.append("-----Content-----");
+		buffer.append("-----Content-----\n");
 		return buffer.toString();
 	}
 
@@ -147,7 +148,7 @@ public class GitHubUploader {
 			
 			int statusCode = response.getStatusLine().getStatusCode();
 			debug("Received status v" + response.getStatusLine());
-			debug(responseToString(response));
+//			debug(responseToString(response));
 			if (statusCode != 201) {
 				throw new GitHubUploadException(
 						"Error posting file to AWS S3! Status: "
@@ -193,6 +194,7 @@ public class GitHubUploader {
 		try {
 			response = httpclient.execute(httppost);
 			debug("Got Response with status: " + response.getStatusLine());
+//			debug(responseToString(response));
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
@@ -200,6 +202,7 @@ public class GitHubUploader {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
 		}
+		
 		Map<String, String> map = ResponseParser.parse(response);
 		return map;
 	}

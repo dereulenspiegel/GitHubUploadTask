@@ -45,10 +45,14 @@ public class ResponseParser {
 					throw new GitHubUploadException(
 							"Failed to parse error message received from GitHub",
 							e);
+				} else {
+					throw (GitHubUploadException)e;
 				}
 			}
+		} else {
+			throw new GitHubUploadException("Got unknwon response "
+					+ response.getStatusLine());
 		}
-		return null;
 	}
 
 	public static String inputStreamToString(InputStream is) throws IOException {
@@ -84,6 +88,10 @@ public class ResponseParser {
 			}
 		}
 		return result;
+	}
+
+	private static void debug(String message) {
+		System.out.println(message);
 	}
 
 }
