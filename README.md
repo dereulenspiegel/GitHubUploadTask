@@ -12,7 +12,7 @@ Add the following to your <code>build.xml</code> file
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
-	<taskdef name="upload" classname="no.kinsey.ant.GitHubUploadTask" classpathref="githubhuploadtask.classpath" loaderref="githubhuploadtask.classpath.loader" />
+	<taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" classpathref="githubhuploadtask.classpath" loaderref="githubhuploadtask.classpath.loader" />
 		
 Now you can use the upload task
 
