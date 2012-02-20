@@ -11,37 +11,47 @@ import org.apache.http.HttpResponse;
 
 /**
  * This class parses the response from GitHub into a Map object
+ * 
  * @author Till Klocke
- *
+ * 
  */
 public class ResponseParser {
 
 	private ResponseParser() {
 
 	}
-	
-	public static Map<String,String> parse(HttpResponse response) throws GitHubUploadException{
+
+	public static Map<String, String> parse(HttpResponse response)
+			throws GitHubUploadException {
 		int responseCode = response.getStatusLine().getStatusCode();
-		if(responseCode == 200){
+		if (responseCode == 200) {
 			try {
-				return parseResponseString(inputStreamToString(response.getEntity().getContent()));
+				return parseResponseString(inputStreamToString(response
+						.getEntity().getContent()));
 			} catch (Exception e) {
 				e.printStackTrace();
-				throw new GitHubUploadException("Can't parse HTTPResponse",e);
+				throw new GitHubUploadException("Can't parse HTTPResponse", e);
 			}
-		} else if(responseCode >= 400){
+		} else if (responseCode >= 400) {
 			try {
-				String body = inputStreamToString(response.getEntity().getContent());
-				throw new GitHubUploadException("Got an Error from GitHub! Status: "+responseCode+" Message: "+body);
+				String body = inputStreamToString(response.getEntity()
+						.getContent());
+				throw new GitHubUploadException(
+						"Got an Error from GitHub! Status: " + responseCode
+								+ " Message: " + body);
 			} catch (Exception e) {
-				e.printStackTrace();
-				throw new GitHubUploadException("Failed to parse error message received from GitHub",e);
+				if (!(e instanceof GitHubUploadException)) {
+					e.printStackTrace();
+					throw new GitHubUploadException(
+							"Failed to parse error message received from GitHub",
+							e);
+				}
 			}
 		}
 		return null;
 	}
-	
-	public static String inputStreamToString(InputStream is) throws IOException{
+
+	public static String inputStreamToString(InputStream is) throws IOException {
 		InputStreamReader ir = new InputStreamReader(is);
 		BufferedReader reader = new BufferedReader(ir);
 		String s = "";
@@ -53,8 +63,9 @@ public class ResponseParser {
 	}
 
 	public static Map<String, String> parseResponseString(String source) {
-		if(source == null || source.trim().length()==0){
-			throw new IllegalArgumentException("The source can't be an empty or null string");
+		if (source == null || source.trim().length() == 0) {
+			throw new IllegalArgumentException(
+					"The source can't be an empty or null string");
 		}
 		String response = source.trim();
 		response = response.replace("{", "");
@@ -63,12 +74,13 @@ public class ResponseParser {
 		Map<String, String> result = new HashMap<String, String>();
 		for (String s : parts) {
 			String[] pairs = s.split("\":");
-			if(pairs.length == 2){
+			if (pairs.length == 2) {
 				String name = pairs[0].replace("\"", "");
 				String value = pairs[1].replace("\"", "");
 				result.put(name, value);
 			} else {
-				throw new IllegalArgumentException("The Input is not parseable! INVALID PART: "+s);
+				throw new IllegalArgumentException(
+						"The Input is not parseable! INVALID PART: " + s);
 			}
 		}
 		return result;
