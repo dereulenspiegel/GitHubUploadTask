@@ -1,13 +1,7 @@
 package de.akuz.githubupload;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -15,17 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -122,6 +112,22 @@ public class GitHubUploader {
 			}
 		}
 	}
+	
+	private String responseToString(HttpResponse response){
+		StringBuffer buffer = new StringBuffer();
+		Header[] headers = response.getAllHeaders();
+		for (Header h : headers) {
+			buffer.append("[Header] "+h.getName()+" : "+h.getValue());
+		}
+		buffer.append("-----Content-----");
+		try {
+			buffer.append(ResponseParser.inputStreamToString(response.getEntity().getContent()));
+		} catch (Exception e) {
+			buffer.append("Couldn't parse content. Reason: "+e.getMessage());
+		} 
+		buffer.append("-----Content-----");
+		return buffer.toString();
+	}
 
 	private void postFileToS3(File file, Map<String, String> details)
 			throws GitHubUploadException {
@@ -133,32 +139,23 @@ public class GitHubUploader {
 		setParameterToEntity(entity,
 				createAWSParameters(details, file.getName()));
 		entity.addPart("file", new FileBody(file, details.get("mime_type")));
-		StringBuffer buffer;
-		BufferedReader reader;
 		try {
 			post.setEntity(entity);
 			debug("Sending " + post.getEntity().getContentLength()
 					+ " bytes of information to AWS S3...");
 			HttpResponse response = httpclient.execute(post);
-
-			debug("Received status " + response.getStatusLine()
-					+ " from AWS S3");
-			Header[] headers = response.getAllHeaders();
-			debug("Reponse headers:");
-			for (Header h : headers) {
-				debug(h.getName() + " : " + h.getValue());
+			
+			int statusCode = response.getStatusLine().getStatusCode();
+			debug("Received status v" + response.getStatusLine());
+			debug(responseToString(response));
+			if (statusCode != 201) {
+				throw new GitHubUploadException(
+						"Error posting file to AWS S3! Status: "
+								+ statusCode
+								+
+						" Reason: "+ResponseParser.inputStreamToString(response.getEntity().getContent()));
 			}
-			debug("End response headers");
-			reader = new BufferedReader(new InputStreamReader(response
-					.getEntity().getContent()));
-			debug("Response content has length of "
-					+ response.getEntity().getContentLength());
-			buffer = new StringBuffer();
-			String s = "";
-			while ((s = reader.readLine()) != null) {
-				buffer.append(s);
-			}
-			debug("Response body: " + buffer.toString());
+			
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post to AWS S3", e);
