@@ -73,7 +73,7 @@ public class GitHubUploader {
 					"The specified file does not exist or is empty");
 		}
 		Map<String, String> s3Details = getS3Details(file, description);
-		uploadFileToS3(file, s3Details);
+		postFileToS3(file, s3Details);
 	}
 
 	public void uploadFile(String filename, String description)
@@ -123,7 +123,7 @@ public class GitHubUploader {
 		}
 	}
 
-	private void uploadFileToS3(File file, Map<String, String> details)
+	private void postFileToS3(File file, Map<String, String> details)
 			throws GitHubUploadException {
 		String s3url = String.format(S3_UPLOAD_URL, details.get("bucket"));
 		debug("Uploading to " + s3url);
