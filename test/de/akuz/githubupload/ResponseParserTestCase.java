@@ -47,7 +47,7 @@ public class ResponseParserTestCase {
 	
 	@Test
 	public void testParsingWithValidResponse() throws Exception {
-		Map<String,String> map = ResponseParser.parseResponse(VALID_RESPONSE);
+		Map<String,String> map = ResponseParser.parseResponseString(VALID_RESPONSE);
 		assertNotNull("The Parser returned no map object",map);
 		assertEquals("We didn't get 9 key/value pairs", 9, map.size());
 		assertEquals("github", map.get("bucket"));
@@ -56,7 +56,7 @@ public class ResponseParserTestCase {
 	@Test
 	public void testParsingWithEmptyResponse() throws Exception {
 		try{
-			Map<String,String> map = ResponseParser.parseResponse("");
+			Map<String,String> map = ResponseParser.parseResponseString("");
 			fail();
 		} catch(IllegalArgumentException e){
 			assertNotNull(e);
@@ -66,7 +66,7 @@ public class ResponseParserTestCase {
 	@Test
 	public void testParsingWithNullResponse() throws Exception {
 		try{
-			Map<String,String> map = ResponseParser.parseResponse(null);
+			Map<String,String> map = ResponseParser.parseResponseString(null);
 			fail();
 		} catch(IllegalArgumentException e){
 			assertNotNull(e);
@@ -76,7 +76,7 @@ public class ResponseParserTestCase {
 	@Test
 	public void testParsingWithInvalidResponse() throws Exception {
 		try{
-			Map<String,String> map = ResponseParser.parseResponse(INVALID_RESPONSE);
+			Map<String,String> map = ResponseParser.parseResponseString(INVALID_RESPONSE);
 			fail();
 		} catch(IllegalArgumentException e){
 			assertNotNull(e);
@@ -85,7 +85,7 @@ public class ResponseParserTestCase {
 	
 	@Test
 	public void testParsingProblematicResponse() throws Exception {
-		Map<String,String> map = ResponseParser.parseResponse(INVALID_RESPONSE_2);
+		Map<String,String> map = ResponseParser.parseResponseString(INVALID_RESPONSE_2);
 		Set<String> keys = map.keySet();
 		for(String s : keys){
 			System.out.println(s);

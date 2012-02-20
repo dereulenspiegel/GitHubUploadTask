@@ -88,8 +88,8 @@ public class GitHubUploader {
 		}
 	}
 
-	private Map<String, String> createAWSParameters(Map<String, String> details,
-			String filename) {
+	private Map<String, String> createAWSParameters(
+			Map<String, String> details, String filename) {
 		String key = details.get("path");
 		String policy = details.get("policy");
 		String accesskeyid = details.get("accesskeyid");
@@ -130,8 +130,9 @@ public class GitHubUploader {
 		HttpPost post = new HttpPost(s3url);
 		MultipartEntity entity = new MultipartEntity(
 				HttpMultipartMode.BROWSER_COMPATIBLE);
-		setParameterToEntity(entity, createAWSParameters(details, file.getName()));
-		entity.addPart("file", new FileBody(file,details.get("mime_type")));
+		setParameterToEntity(entity,
+				createAWSParameters(details, file.getName()));
+		entity.addPart("file", new FileBody(file, details.get("mime_type")));
 		StringBuffer buffer;
 		BufferedReader reader;
 		try {
@@ -139,7 +140,7 @@ public class GitHubUploader {
 			debug("Sending " + post.getEntity().getContentLength()
 					+ " bytes of information to AWS S3...");
 			HttpResponse response = httpclient.execute(post);
-			
+
 			debug("Received status " + response.getStatusLine()
 					+ " from AWS S3");
 			Header[] headers = response.getAllHeaders();
@@ -150,7 +151,8 @@ public class GitHubUploader {
 			debug("End response headers");
 			reader = new BufferedReader(new InputStreamReader(response
 					.getEntity().getContent()));
-			debug("Response content has length of "+response.getEntity().getContentLength());
+			debug("Response content has length of "
+					+ response.getEntity().getContentLength());
 			buffer = new StringBuffer();
 			String s = "";
 			while ((s = reader.readLine()) != null) {
@@ -201,32 +203,8 @@ public class GitHubUploader {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
 		}
-		// TODO: Evaluate headers
-		InputStreamReader ir;
-		try {
-			ir = new InputStreamReader(response.getEntity().getContent());
-			BufferedReader reader = new BufferedReader(ir);
-			String s = "";
-			StringBuffer buffer = new StringBuffer();
-			while ((s = reader.readLine()) != null) {
-				buffer.append(s);
-			}
-			debug("Got response String: " + buffer.toString());
-			//TODO Let the Response parser handle the complete HTTP Response
-			Map<String, String> map = ResponseParser.parseResponse(buffer
-					.toString());
-			return map;
-
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			throw new GitHubUploadException("Can't read response from GitHub",
-					e);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new GitHubUploadException("Can't read response from GitHub",
-					e);
-		}
-
+		Map<String, String> map = ResponseParser.parse(response);
+		return map;
 	}
 
 	public static void main(String[] argv) {
