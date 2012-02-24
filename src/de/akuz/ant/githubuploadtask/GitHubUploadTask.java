@@ -1,8 +1,13 @@
 package de.akuz.ant.githubuploadtask;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
+import de.akuz.githubupload.GitHubFile;
 import de.akuz.githubupload.GitHubUploadException;
 import de.akuz.githubupload.GitHubUploader;
 
@@ -23,18 +28,38 @@ public class GitHubUploadTask extends Task {
 	private String token;
 	private String path;
 	private String description;
+	private String deletePatternString;
 	private boolean debug = false;
+	private Pattern deletePattern;
 	
 	private GitHubUploader uploader;
 
 	@Override
 	public void execute() throws BuildException {
-		System.out.println("Uploading file "+path+" to GitHub");
 		uploader = new GitHubUploader(user, username, repo, token);
 		uploader.setDebug(debug);
+		
+		if(deletePatternString!=null && deletePatternString.trim().length() > 0){
+			out("delete pattern is set, deleting all files matching the pattern");
+			deletePattern = Pattern.compile(deletePatternString);
+			try {
+				List<GitHubFile> files = uploader.getListOfFiles();
+				for(GitHubFile file : files){
+					Matcher matcher = deletePattern.matcher(file.getName());
+					if(matcher.matches()){
+						out("Deleting file "+file.getName());
+						uploader.deleteFile(file);
+					}
+				}
+			} catch (GitHubUploadException e) {
+				throw new BuildException(e);
+			}
+		}
+		out("Uploading file "+path+" to GitHub");
+		
 		try {
 			uploader.uploadFile(path, description);
-			System.out.println("Upload finished");
+			out("Upload finished");
 		} catch (GitHubUploadException e) {
 			e.printStackTrace();
 			throw new BuildException("Can't upload file to GitHub",e);
@@ -91,6 +116,14 @@ public class GitHubUploadTask extends Task {
 	
 	public void setDebug(String value){
 		debug = Boolean.parseBoolean(value);
+	}
+
+	public void setDeletePattern(String deletePattern) {
+		this.deletePatternString = deletePattern;
+	}
+	
+	private void out(String message){
+		System.out.println(message);
 	}
 
 }
