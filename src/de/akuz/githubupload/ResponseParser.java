@@ -45,11 +45,12 @@ public class ResponseParser {
 			throws GitHubUploadException {
 		handleStatusCode(response);
 
+		Document doc = null;
 		try {
 			DOMParser parser = new DOMParser();
 			parser.parse(new InputSource(response.getEntity().getContent()));
 
-			Document doc = parser.getDocument();
+			doc = parser.getDocument();
 			Element downloads = doc.getElementById("manual_downloads");
 			NodeList listNodes = downloads.getElementsByTagName("li");
 			List<GitHubFile> gitHubFiles = new ArrayList<GitHubFile>(
@@ -75,6 +76,11 @@ public class ResponseParser {
 			}
 			return Collections.unmodifiableList(gitHubFiles);
 		} catch (Exception e) {
+			try {
+				printDocument(doc);
+			} catch (TransformerException e1) {
+				e1.printStackTrace();
+			}
 			throw new GitHubUploadException(e);
 		}
 	}

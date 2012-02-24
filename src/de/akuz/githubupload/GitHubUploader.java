@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -269,6 +270,7 @@ public class GitHubUploader {
 		String token = null;
 		String description = null;
 		String filePath = null;
+		String delete = null;
 		boolean debug = false;
 
 		int i = 0;
@@ -285,6 +287,8 @@ public class GitHubUploader {
 				description = argv[i + 1];
 			} else if (s.equals("-debug")) {
 				debug = true;
+			} else if(s.equals("-delete")){
+				delete = argv[i+1];
 			}
 			i++;
 		}
@@ -294,6 +298,15 @@ public class GitHubUploader {
 				token);
 		uploader.setDebug(debug);
 		try {
+			if(delete != null){
+				List<GitHubFile> files = uploader.getListOfFiles();
+				for(GitHubFile file : files){
+					if(Pattern.matches(delete, file.getName())){
+						System.out.println("Deleting file: "+file.getName());
+						uploader.deleteFile(file);
+					}
+				}
+			}
 			uploader.uploadFile(filePath, description);
 		} catch (GitHubUploadException e) {
 			e.printStackTrace();
