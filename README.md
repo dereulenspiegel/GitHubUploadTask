@@ -16,7 +16,8 @@ Add the following to your <code>build.xml</code> file
 		
 Now you can use the upload task
 
-    <upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="just a test" path="${basedir}/file.zip" />
+    <upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="just a test" path="${basedir}/file.zip debug="true" deletePattern="RegexToDeleteOldFiles"/>
+    The attributes debug and deletePattern are optional.
 
 Example
 -------
@@ -38,6 +39,5 @@ This is licensed under the MIT license
 
 Author
 =====
-The author is Øyvind Sean Kinsey (oyvind@kinsey.no / http://kinsey.no)
-and Till Klocke (http://blog.akuz.de)
+The author is Øyvind Sean Kinsey (oyvind@kinsey.no / http://kinsey.no) and Till Klocke (http://blog.akuz.de)
  
