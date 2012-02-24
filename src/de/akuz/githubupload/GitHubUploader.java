@@ -9,18 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -28,10 +27,8 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicNameValuePair;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * This class implements file uploading to github. Repository, user (owner of
@@ -48,13 +45,14 @@ public class GitHubUploader {
 	private String repo;
 	private String token;
 	private HttpClient httpclient;
+	private HttpContext gitHubContext;
 	private boolean debug = false;
 
 	private final static String DOWNLOADS_URL = "https://github.com/%1$s/%2$s/downloads";
 	private final static String S3_UPLOAD_URL = "https://%1$s.s3.amazonaws.com/";
 	// "https://github.com/#{user}/#{repo}/downloads?login=#{github_user}&token=#{github_token}";
 	private final static String FILE_LIST_URL = "https://github.com/%1$s/%2$s/downloads?login=%3$s&token=%4$s";
-	private final static String AUTH_SUFFIX = "?login=%1$s&token=%2$s";
+	private final static String AUTH_SUFFIX = "?login=%1$s&token=%2$s";	
 	private final static String ENCODING = "UTF-8";
 
 	private String currentURL;
@@ -66,6 +64,9 @@ public class GitHubUploader {
 		this.repo = repo;
 		this.token = token;
 		httpclient = new DefaultHttpClient();
+		httpclient.getParams().setParameter(
+		        ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+		gitHubContext = new BasicHttpContext();
 	}
 
 	public void uploadFile(File file, String description)
@@ -208,7 +209,7 @@ public class GitHubUploader {
 		HttpResponse response;
 
 		try {
-			response = httpclient.execute(httppost);
+			response = httpclient.execute(httppost,gitHubContext);
 			debug("Got Response with status: " + response.getStatusLine());
 			// debug(responseToString(response));
 		} catch (ClientProtocolException e) {
@@ -227,7 +228,7 @@ public class GitHubUploader {
 		String url = String.format(FILE_LIST_URL, user, repo, username, token);
 		HttpGet get = new HttpGet(url);
 		try {
-			HttpResponse response = httpclient.execute(get);
+			HttpResponse response = httpclient.execute(get,gitHubContext);
 			return ResponseParser.parseDownloadResponse(response);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -243,6 +244,22 @@ public class GitHubUploader {
 					e);
 		}
 
+	}
+
+	public void deleteFile(GitHubFile file) throws GitHubUploadException{
+		String url = String.format("https://github.com"+file.getDeletePath());
+		debug("deleting from url "+url);
+		HttpDelete deleteFile = new HttpDelete(url);
+		try {
+			HttpResponse response = httpclient.execute(deleteFile,gitHubContext);
+			debug(responseToString(response));
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+			throw new GitHubUploadException("Can't delete file "+file.getName(),e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new GitHubUploadException("Can't delete file "+file.getName(),e);
+		}
 	}
 
 	public static void main(String[] argv) {
