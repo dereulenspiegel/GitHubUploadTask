@@ -45,7 +45,14 @@
 		<zip destfile="${dist}/GitHubUploadTask-${DSTAMP}.zip" basedir="${dist}/lib/" />
 
 		<taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" />
-		<upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="GitHubUploadTask nightly" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" debug="true" />
+		<upload user="${github.user}" 
+			repo="${github.repo}" 
+			username="${github.username}" 
+			token="${github.token}" 
+			description="GitHubUploadTask nightly" 
+			path="${dist}/GitHubUploadTask-${DSTAMP}.zip" 
+			debug="true"
+			deletePattern="GitHubUploadTask-.*.zip"/>
 	</target>
 
 	<target name="build-fat-jar" depends="compile">
