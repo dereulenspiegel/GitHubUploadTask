@@ -47,14 +47,7 @@
 
 	<target name="upload" depends="dist">
 		<taskdef name="upload" classname="de.akuz.ant.githubuploadtask.GitHubUploadTask" />
-		<upload user="${github.user}" 
-			repo="${github.repo}" 
-			username="${github.username}" 
-			token="${github.token}" 
-			description="GitHubUploadTask nightly" 
-			path="${dist}/GitHubUploadTask-${DSTAMP}.zip" 
-			debug="true" 
-			deletePattern="GitHubUploadTask-.*.zip" />
+		<upload user="${github.user}" repo="${github.repo}" username="${github.username}" token="${github.token}" description="GitHubUploadTask nightly" path="${dist}/GitHubUploadTask-${DSTAMP}.zip" debug="true" deletePattern="GitHubUploadTask-.*.zip" />
 	</target>
 
 	<target name="build-fat-jar" depends="compile">
@@ -74,7 +67,7 @@
 			</manifest>
 			<zipfileset dir="${extracted-jars}">
 				<include name="**/*.class" />
-				<include name="**/*.properties"/>
+				<include name="**/*.properties" />
 			</zipfileset>
 		</jar>
 	</target>
@@ -89,6 +82,13 @@
 				<attribute name="Main-Class" value="${main.class}" />
 			</manifest>
 		</jar>
+	</target>
+
+	<target name="javadoc">
+		<mkdir dir="${dist}/javadoc" />
+		<javadoc destdir="${dist}/javadoc">
+			<fileset dir="${src}/" includes="**/*.java" />
+		</javadoc>
 	</target>
 
 	<target name="clean" description="clean up">
