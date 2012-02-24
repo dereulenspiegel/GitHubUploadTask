@@ -269,7 +269,7 @@ public class GitHubUploader {
 				List<GitHubFile> files = getListOfFiles();
 				for(GitHubFile file : files){
 					if(Pattern.matches(delete, file.getName())){
-						System.out.println("Deleting file: "+file.getName());
+						debug("Deleting file: "+file.getName());
 						deleteFile(file);
 					}
 				}
