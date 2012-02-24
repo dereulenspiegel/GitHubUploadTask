@@ -262,6 +262,19 @@ public class GitHubUploader {
 			throw new GitHubUploadException("Can't delete file "+file.getName(),e);
 		}
 	}
+	
+	public void deleteFilesByPattern(String delete) throws GitHubUploadException {
+
+			if(delete != null){
+				List<GitHubFile> files = getListOfFiles();
+				for(GitHubFile file : files){
+					if(Pattern.matches(delete, file.getName())){
+						System.out.println("Deleting file: "+file.getName());
+						deleteFile(file);
+					}
+				}
+			}
+	}
 
 	public static void main(String[] argv) {
 		String user = null;
@@ -293,23 +306,18 @@ public class GitHubUploader {
 			i++;
 		}
 		filePath = argv[argv.length - 1];
-
+		
 		GitHubUploader uploader = new GitHubUploader(user, username, repo,
 				token);
 		uploader.setDebug(debug);
+		
 		try {
-			if(delete != null){
-				List<GitHubFile> files = uploader.getListOfFiles();
-				for(GitHubFile file : files){
-					if(Pattern.matches(delete, file.getName())){
-						System.out.println("Deleting file: "+file.getName());
-						uploader.deleteFile(file);
-					}
-				}
+			if (delete != null) {
+				uploader.deleteFilesByPattern(delete);
 			}
 			uploader.uploadFile(filePath, description);
-		} catch (GitHubUploadException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO: handle exception
 		}
 	}
 
