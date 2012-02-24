@@ -9,12 +9,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -23,6 +28,10 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicNameValuePair;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * This class implements file uploading to github. Repository, user (owner of
@@ -43,6 +52,9 @@ public class GitHubUploader {
 
 	private final static String DOWNLOADS_URL = "https://github.com/%1$s/%2$s/downloads";
 	private final static String S3_UPLOAD_URL = "https://%1$s.s3.amazonaws.com/";
+	// "https://github.com/#{user}/#{repo}/downloads?login=#{github_user}&token=#{github_token}";
+	private final static String FILE_LIST_URL = "https://github.com/%1$s/%2$s/downloads?login=%3$s&token=%4$s";
+	private final static String AUTH_SUFFIX = "?login=%1$s&token=%2$s";
 	private final static String ENCODING = "UTF-8";
 
 	private String currentURL;
@@ -112,20 +124,22 @@ public class GitHubUploader {
 			}
 		}
 	}
-	
-	private String responseToString(HttpResponse response){
+
+	private String responseToString(HttpResponse response) {
 		StringBuffer buffer = new StringBuffer();
 		Header[] headers = response.getAllHeaders();
 		for (Header h : headers) {
-			buffer.append("[Header] "+h.getName()+" : "+h.getValue()+"\n");
+			buffer.append("[Header] " + h.getName() + " : " + h.getValue()
+					+ "\n");
 		}
 		buffer.append("-----Content-----\n");
 		try {
-			buffer.append(ResponseParser.inputStreamToString(response.getEntity().getContent()));
+			buffer.append(ResponseParser.inputStreamToString(response
+					.getEntity().getContent()));
 			buffer.append("\n");
 		} catch (Exception e) {
-			buffer.append("Couldn't parse content. Reason: "+e.getMessage());
-		} 
+			buffer.append("Couldn't parse content. Reason: " + e.getMessage());
+		}
 		buffer.append("-----Content-----\n");
 		return buffer.toString();
 	}
@@ -145,18 +159,19 @@ public class GitHubUploader {
 			debug("Sending " + post.getEntity().getContentLength()
 					+ " bytes of information to AWS S3...");
 			HttpResponse response = httpclient.execute(post);
-			
+
 			int statusCode = response.getStatusLine().getStatusCode();
 			debug("Received status v" + response.getStatusLine());
-//			debug(responseToString(response));
+			// debug(responseToString(response));
 			if (statusCode != 201) {
 				throw new GitHubUploadException(
 						"Error posting file to AWS S3! Status: "
 								+ statusCode
-								+
-						" Reason: "+ResponseParser.inputStreamToString(response.getEntity().getContent()));
+								+ " Reason: "
+								+ ResponseParser.inputStreamToString(response
+										.getEntity().getContent()));
 			}
-			
+
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post to AWS S3", e);
@@ -188,13 +203,14 @@ public class GitHubUploader {
 		nameValuePairs.add(new BasicNameValuePair("token", token));
 		nameValuePairs.add(new BasicNameValuePair("file_size", String
 				.valueOf(file.length())));
+		debug("Posted file_size: " + String.valueOf(file.length()));
 
 		HttpResponse response;
 
 		try {
 			response = httpclient.execute(httppost);
 			debug("Got Response with status: " + response.getStatusLine());
-//			debug(responseToString(response));
+			// debug(responseToString(response));
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
@@ -202,9 +218,31 @@ public class GitHubUploader {
 			e.printStackTrace();
 			throw new GitHubUploadException("Can't post request to GitHub", e);
 		}
-		
+
 		Map<String, String> map = ResponseParser.parse(response);
 		return map;
+	}
+
+	public List<GitHubFile> getListOfFiles() throws GitHubUploadException {
+		String url = String.format(FILE_LIST_URL, user, repo, username, token);
+		HttpGet get = new HttpGet(url);
+		try {
+			HttpResponse response = httpclient.execute(get);
+			return ResponseParser.parseDownloadResponse(response);
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+			throw new GitHubUploadException("Failed to retrieve list of files",
+					e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new GitHubUploadException("Failed to retrieve list of files",
+					e);
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+			throw new GitHubUploadException("Failed to retrieve list of files",
+					e);
+		}
+
 	}
 
 	public static void main(String[] argv) {
