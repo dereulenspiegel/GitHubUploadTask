@@ -74,6 +74,7 @@
 			</manifest>
 			<zipfileset dir="${extracted-jars}">
 				<include name="**/*.class" />
+				<include name="**/*.properties"/>
 			</zipfileset>
 		</jar>
 	</target>
