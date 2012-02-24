@@ -15,6 +15,7 @@
 	<property name="test.dir" location="test" />
 	<property name="main.class" value="de.akuz.githubupload.GitHubUploader" />
 	<property name="extracted-jars" value="bin.ext" />
+	<property name="temp.dir" value="temp" />
 
 	<path id="classpath">
 		<fileset dir="${libs}">
@@ -37,12 +38,12 @@
 		</javac>
 	</target>
 
-	<target name="dist" depends="compile" description="generate the distribution">
+	<target name="dist" depends="compile, javadoc" description="generate the distribution">
 		<!-- Create the distribution directory -->
-		<mkdir dir="${dist}/lib" />
+		<mkdir dir="${temp.dir}" />
 		<antcall target="build-fat-jar" />
 		<antcall target="build-jar" />
-		<zip destfile="${dist}/GitHubUploadTask-${DSTAMP}.zip" basedir="${dist}/lib/" />
+		<zip destfile="${dist}/GitHubUploadTask-${DSTAMP}.zip" basedir="${temp.dir}" />
 	</target>
 
 	<target name="upload" depends="dist">
@@ -57,7 +58,7 @@
 				<include name="*.jar" />
 			</fileset>
 		</unzip>
-		<jar jarfile="${dist}/lib/GitHubUploadTask-with-deps-${DSTAMP}.jar" basedir="${build}">
+		<jar jarfile="${temp.dir}/lib/GitHubUploadTask-with-deps-${DSTAMP}.jar" basedir="${build}">
 			<manifest>
 				<attribute name="Built-By" value="XXXXXXXXj" />
 				<attribute name="Implementation-Title" value="GitHubUploadTask" />
@@ -73,7 +74,7 @@
 	</target>
 
 	<target name="build-jar" depends="compile">
-		<jar jarfile="${dist}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}">
+		<jar jarfile="${temp.dir}/lib/GitHubUploadTask-${DSTAMP}.jar" basedir="${build}">
 			<manifest>
 				<attribute name="Built-By" value="XXXXXXXXj" />
 				<attribute name="Implementation-Title" value="GitHubUploadTask" />
@@ -85,8 +86,8 @@
 	</target>
 
 	<target name="javadoc">
-		<mkdir dir="${dist}/javadoc" />
-		<javadoc destdir="${dist}/javadoc">
+		<mkdir dir="${temp.dir}/javadoc" />
+		<javadoc destdir="${temp.dir}/javadoc">
 			<fileset dir="${src}/" includes="**/*.java" />
 		</javadoc>
 	</target>
@@ -96,6 +97,7 @@
 		<delete dir="${build}" />
 		<delete dir="${dist}" />
 		<delete dir="${extracted-jars}" />
+		<delete dir="${temp.dir}" />
 	</target>
 
 	<target name="test" description="test the upload">
