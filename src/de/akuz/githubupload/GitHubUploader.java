@@ -53,7 +53,7 @@ public class GitHubUploader {
 	private final static String S3_UPLOAD_URL = "https://%1$s.s3.amazonaws.com/";
 	// "https://github.com/#{user}/#{repo}/downloads?login=#{github_user}&token=#{github_token}";
 	private final static String FILE_LIST_URL = "https://github.com/%1$s/%2$s/downloads?login=%3$s&token=%4$s";
-	private final static String AUTH_SUFFIX = "?login=%1$s&token=%2$s";	
+	private final static String AUTH_SUFFIX = "?login=%1$s&token=%2$s";
 	private final static String ENCODING = "UTF-8";
 
 	private String currentURL;
@@ -65,11 +65,21 @@ public class GitHubUploader {
 		this.repo = repo;
 		this.token = token;
 		httpclient = new DefaultHttpClient();
-		httpclient.getParams().setParameter(
-		        ClientPNames.COOKIE_POLICY, CookiePolicy.BEST_MATCH);
+		httpclient.getParams().setParameter(ClientPNames.COOKIE_POLICY,
+				CookiePolicy.BEST_MATCH);
 		gitHubContext = new BasicHttpContext();
 	}
 
+	/**
+	 * Upload a file to the downloads section of a github repository. The file
+	 * is being sent with the HTTP post method.
+	 * 
+	 * @param file
+	 *            a file object you want to upload
+	 * @param description
+	 *            a description of the file
+	 * @throws GitHubUploadException
+	 */
 	public void uploadFile(File file, String description)
 			throws GitHubUploadException {
 		if (file == null || !file.exists() || file.length() == 0) {
@@ -80,6 +90,16 @@ public class GitHubUploader {
 		postFileToS3(file, s3Details);
 	}
 
+	/**
+	 * Upload a file to the downloads section of a github repository. The file
+	 * is being sent with the HTTP post method.
+	 * 
+	 * @param filename
+	 *            the path to the file you wish to upload
+	 * @param description
+	 *            a description of the file
+	 * @throws GitHubUploadException
+	 */
 	public void uploadFile(String filename, String description)
 			throws GitHubUploadException {
 		uploadFile(new File(filename), description);
@@ -116,6 +136,13 @@ public class GitHubUploader {
 
 	}
 
+	/**
+	 * Adds parameters from a Map<String,String> to MultiPartEntity. Just for
+	 * convenience.
+	 * 
+	 * @param entity
+	 * @param headers
+	 */
 	private void setParameterToEntity(MultipartEntity entity,
 			Map<String, String> headers) {
 		for (String s : headers.keySet()) {
@@ -127,6 +154,13 @@ public class GitHubUploader {
 		}
 	}
 
+	/**
+	 * Used only for debugging in development. Prints a whole HTTP Response as
+	 * String including headers.
+	 * 
+	 * @param response
+	 * @return
+	 */
 	private String responseToString(HttpResponse response) {
 		StringBuffer buffer = new StringBuffer();
 		Header[] headers = response.getAllHeaders();
@@ -146,6 +180,13 @@ public class GitHubUploader {
 		return buffer.toString();
 	}
 
+	/**
+	 * This method posts the file to the github bucket on AWS S3
+	 * 
+	 * @param file
+	 * @param details
+	 * @throws GitHubUploadException
+	 */
 	private void postFileToS3(File file, Map<String, String> details)
 			throws GitHubUploadException {
 		String s3url = String.format(S3_UPLOAD_URL, details.get("bucket"));
@@ -184,6 +225,15 @@ public class GitHubUploader {
 		// TODO Evaluate response
 	}
 
+	/**
+	 * This methos retrieves the necessary information from github to post a
+	 * file to the github bucket on AWS S3
+	 * 
+	 * @param file
+	 * @param description
+	 * @return
+	 * @throws GitHubUploadException
+	 */
 	private Map<String, String> getS3Details(File file, String description)
 			throws GitHubUploadException {
 		currentURL = String.format(DOWNLOADS_URL, user, repo);
@@ -210,7 +260,7 @@ public class GitHubUploader {
 		HttpResponse response;
 
 		try {
-			response = httpclient.execute(httppost,gitHubContext);
+			response = httpclient.execute(httppost, gitHubContext);
 			debug("Got Response with status: " + response.getStatusLine());
 			// debug(responseToString(response));
 		} catch (ClientProtocolException e) {
@@ -225,11 +275,17 @@ public class GitHubUploader {
 		return map;
 	}
 
+	/**
+	 * Returns a list of already uploaded files.
+	 * 
+	 * @return UnmodifieableList
+	 * @throws GitHubUploadException
+	 */
 	public List<GitHubFile> getListOfFiles() throws GitHubUploadException {
 		String url = String.format(FILE_LIST_URL, user, repo, username, token);
 		HttpGet get = new HttpGet(url);
 		try {
-			HttpResponse response = httpclient.execute(get,gitHubContext);
+			HttpResponse response = httpclient.execute(get, gitHubContext);
 			return ResponseParser.parseDownloadResponse(response);
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -247,33 +303,52 @@ public class GitHubUploader {
 
 	}
 
-	public void deleteFile(GitHubFile file) throws GitHubUploadException{
-		String url = String.format("https://github.com"+file.getDeletePath());
-		debug("deleting from url "+url);
+	/**
+	 * Deletes a certain file from the downloads section. You can retrieve a
+	 * valid file object using getListOfFiles
+	 * 
+	 * @param file
+	 * @throws GitHubUploadException
+	 */
+	public void deleteFile(GitHubFile file) throws GitHubUploadException {
+		String url = String.format("https://github.com" + file.getDeletePath());
+		debug("deleting from url " + url);
 		HttpDelete deleteFile = new HttpDelete(url);
 		try {
-			HttpResponse response = httpclient.execute(deleteFile,gitHubContext);
+			HttpResponse response = httpclient.execute(deleteFile,
+					gitHubContext);
 			debug(responseToString(response));
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't delete file "+file.getName(),e);
+			throw new GitHubUploadException("Can't delete file "
+					+ file.getName(), e);
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new GitHubUploadException("Can't delete file "+file.getName(),e);
+			throw new GitHubUploadException("Can't delete file "
+					+ file.getName(), e);
 		}
 	}
-	
-	public void deleteFilesByPattern(String delete) throws GitHubUploadException {
 
-			if(delete != null){
-				List<GitHubFile> files = getListOfFiles();
-				for(GitHubFile file : files){
-					if(Pattern.matches(delete, file.getName())){
-						debug("Deleting file: "+file.getName());
-						deleteFile(file);
-					}
+	/**
+	 * Deletes all files whose names match the given regular expression from the
+	 * downloads section
+	 * 
+	 * @param delete
+	 *            a valid regular expression
+	 * @throws GitHubUploadException
+	 */
+	public void deleteFilesByPattern(String delete)
+			throws GitHubUploadException {
+
+		if (delete != null) {
+			List<GitHubFile> files = getListOfFiles();
+			for (GitHubFile file : files) {
+				if (Pattern.matches(delete, file.getName())) {
+					debug("Deleting file: " + file.getName());
+					deleteFile(file);
 				}
 			}
+		}
 	}
 
 	public static void main(String[] argv) {
@@ -300,17 +375,17 @@ public class GitHubUploader {
 				description = argv[i + 1];
 			} else if (s.equals("-debug")) {
 				debug = true;
-			} else if(s.equals("-delete")){
-				delete = argv[i+1];
+			} else if (s.equals("-delete")) {
+				delete = argv[i + 1];
 			}
 			i++;
 		}
 		filePath = argv[argv.length - 1];
-		
+
 		GitHubUploader uploader = new GitHubUploader(user, username, repo,
 				token);
 		uploader.setDebug(debug);
-		
+
 		try {
 			if (delete != null) {
 				uploader.deleteFilesByPattern(delete);
@@ -321,6 +396,11 @@ public class GitHubUploader {
 		}
 	}
 
+	/**
+	 * Activate some more output
+	 * 
+	 * @param debug
+	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
 	}

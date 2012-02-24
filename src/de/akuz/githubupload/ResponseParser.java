@@ -28,7 +28,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
- * This class parses the response from GitHub into a Map object
+ * This class handles parsing of all responses we get from github or AWS S3.
  * 
  * @author Till Klocke
  * 
@@ -41,6 +41,12 @@ public class ResponseParser {
 
 	}
 
+	/**
+	 * The response we get from github when asking for all uploaded files
+	 * @param response
+	 * @return
+	 * @throws GitHubUploadException
+	 */
 	public static List<GitHubFile> parseDownloadResponse(HttpResponse response)
 			throws GitHubUploadException {
 		handleStatusCode(response);
@@ -98,6 +104,12 @@ public class ResponseParser {
 		return map.getNamedItem(name).getNodeValue();
 	}
 
+	/**
+	 * Parses the response after we uploaded a file
+	 * @param response
+	 * @return
+	 * @throws GitHubUploadException
+	 */
 	public static Map<String, String> parse(HttpResponse response)
 			throws GitHubUploadException {
 		handleStatusCode(response);
@@ -147,6 +159,11 @@ public class ResponseParser {
 		return buffer.toString();
 	}
 
+	/**
+	 * Simple method to get required parameters from the json object github sends
+	 * @param source
+	 * @return
+	 */
 	public static Map<String, String> parseResponseString(String source) {
 		if (source == null || source.trim().length() == 0) {
 			throw new IllegalArgumentException(

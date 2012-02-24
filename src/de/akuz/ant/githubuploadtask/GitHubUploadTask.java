@@ -68,58 +68,65 @@ public class GitHubUploadTask extends Task {
 		}
 	}
 
-	public String getUser() {
-		return user;
-	}
-
+	/**
+	 * Sets the user the repor belongs to
+	 * @return
+	 */
 	public void setUser(String user) {
 		this.user = user;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
+	/**
+	 * Set the username of the user which wants to upload the file
+	 * @param username
+	 */
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
-	public String getRepo() {
-		return repo;
-	}
-
+	/**
+	 * Set the repo the file should be uploaded to
+	 * @param repo
+	 */
 	public void setRepo(String repo) {
 		this.repo = repo;
 	}
-
-	public String getToken() {
-		return token;
-	}
-
+	
+	/**
+	 * Set the API token of the user who wants to upload the file
+	 * @param token
+	 */
 	public void setToken(String token) {
 		this.token = token;
 	}
-
-	public String getPath() {
-		return path;
-	}
-
+	
+	/**
+	 * Set the path of the file the user wants to upload
+	 * @param path
+	 */
 	public void setPath(String path) {
 		this.path = path;
 	}
 
-	public String getDescription() {
-		return description;
-	}
-
+	/**
+	 * Set the description of the the user wants to upload
+	 */
 	public void setDescription(String description) {
 		this.description = description;
 	}
 	
+	/**
+	 * Set to true to see some more output
+	 * @param value
+	 */
 	public void setDebug(String value){
 		debug = Boolean.parseBoolean(value);
 	}
-
+	
+	/**
+	 * If set all files in the download section if the repo matching this pattern will be deleted
+	 * @param deletePattern a valid regex
+	 */
 	public void setDeletePattern(String deletePattern) {
 		this.deletePatternString = deletePattern;
 	}
