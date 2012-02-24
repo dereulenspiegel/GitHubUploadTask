@@ -48,6 +48,7 @@ public class ResponseParser {
 		Document doc = null;
 		try {
 			DOMParser parser = new DOMParser();
+			debug("Parsing document");
 			parser.parse(new InputSource(response.getEntity().getContent()));
 
 			doc = parser.getDocument();
