@@ -77,11 +77,8 @@ public class ResponseParser {
 			}
 			return Collections.unmodifiableList(gitHubFiles);
 		} catch (Exception e) {
-			try {
-				printDocument(doc);
-			} catch (TransformerException e1) {
-				e1.printStackTrace();
-			}
+			e.printStackTrace();
+			debug("Catching unknown Exception");
 			throw new GitHubUploadException(e);
 		}
 	}
