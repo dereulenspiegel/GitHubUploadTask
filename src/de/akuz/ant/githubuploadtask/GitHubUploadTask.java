@@ -43,8 +43,10 @@ public class GitHubUploadTask extends Task {
 			out("delete pattern is set, deleting all files matching the pattern");
 			deletePattern = Pattern.compile(deletePatternString);
 			try {
+				debug("Retrieving list of files");
 				List<GitHubFile> files = uploader.getListOfFiles();
 				for(GitHubFile file : files){
+					debug("Checking file for removal: "+file.getName());
 					Matcher matcher = deletePattern.matcher(file.getName());
 					if(matcher.matches()){
 						out("Deleting file "+file.getName());
@@ -124,6 +126,12 @@ public class GitHubUploadTask extends Task {
 	
 	private void out(String message){
 		System.out.println(message);
+	}
+	
+	private void debug(String message){
+		if(debug){
+			out(message);
+		}
 	}
 
 }
